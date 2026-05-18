@@ -9,6 +9,7 @@ const __dirname = path.dirname(__filename);
 // 解析启动参数
 let configPath = null;
 let stateDir = null;
+let cacheDir = null;
 const remainingArgs = [];
 
 for (let i = 2; i < process.argv.length; i++) {
@@ -23,6 +24,11 @@ for (let i = 2; i < process.argv.length; i++) {
     i++;
   } else if (arg.startsWith("--state-dir=")) {
     stateDir = arg.split("=")[1];
+  } else if (arg === "--pkg-cache-dir" && process.argv[i + 1]) {
+    cacheDir = process.argv[i + 1];
+    i++;
+  } else if (arg.startsWith("--pkg-cache-dir=")) {
+    cacheDir = arg.split("=")[1];
   } else {
     remainingArgs.push(arg);
   }
@@ -51,6 +57,7 @@ if (existsSync(binaryPath)) {
   const forwardedArgs = [];
   if (configPath) forwardedArgs.push(`--config=${configPath}`);
   if (stateDir) forwardedArgs.push(`--state-dir=${stateDir}`);
+  if (cacheDir) forwardedArgs.push(`--pkg-cache-dir=${cacheDir}`);
   execArgs = ["gateway", "run", ...forwardedArgs, ...remainingArgs];
   console.log(`Using pkg binary: ${binaryPath}`);
 } else {

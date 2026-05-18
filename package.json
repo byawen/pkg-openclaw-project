@@ -20,7 +20,9 @@
     "main.js",
     "package.json"
   ],
-  "devDependencies": {},
+  "devDependencies": {
+    "@yao-pkg/pkg": "^6.19.0"
+  },
   "pkg": {
     "scripts": [
       "pkg-build/config/main-pkg-extract.cjs"
