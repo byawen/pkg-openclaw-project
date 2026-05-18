@@ -68,14 +68,16 @@ for (let i = 0; i < rawArgs.length; i++) {
 const execDir = path.dirname(process.execPath);
 if (!cacheDir) {
   if (isPkgBinary) {
-    cacheDir = path.join(execDir, "openclaw-pkg-cache");
+    cacheDir = path.join(execDir, "claw-pkg-cache");
   } else {
-    cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-pkg-"));
+    cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), "claw-pkg-"));
   }
 }
+
 if (!configPath) {
   configPath = path.join(execDir, "openclaw.json");
 }
+
 if (!stateDir) {
   stateDir = path.join(execDir, ".openclaw-state");
 }
