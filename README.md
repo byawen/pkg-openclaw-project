@@ -44,9 +44,20 @@ pnpm run build:pkg
 
 ### 构建单个平台
 ```bash
-npm run build:pkg:macos-arm64
-npm run build:pkg:macos-x64
-npm run build:pkg:win-x64
+pnpm run build:pkg:macos-arm64
+pnpm run build:pkg:macos-x64
+pnpm run build:pkg:win-x64
+```
+
+### 指定 claw 目录
+所有构建命令都支持自定义 `claw/` 目录位置：
+```bash
+# 通过命令行参数
+pnpm run build:pkg -- --claw-dir ./my-claw
+pnpm run build:pkg:win-x64 -- --claw-dir ./my-claw
+
+# 通过环境变量
+CLAW_DIR=./my-claw pnpm run build:pkg
 ```
 
 ## 🔍 常用命令

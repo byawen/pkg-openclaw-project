@@ -9,7 +9,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.join(__dirname, "../..");
 const OUTPUT_DIR = path.join(PROJECT_ROOT, "dist-pkg");
 const LOCAL_CACHE = path.join(PROJECT_ROOT, ".pkg-cache");
-const CLAW_DIR = path.join(PROJECT_ROOT, "claw");
+function resolveClawDir() {
+  const idx = process.argv.indexOf("--claw-dir");
+  if (idx !== -1 && process.argv[idx + 1]) return path.resolve(PROJECT_ROOT, process.argv[idx + 1]);
+  const env = process.env.CLAW_DIR;
+  if (env) return path.resolve(PROJECT_ROOT, env);
+  return path.join(PROJECT_ROOT, "claw");
+}
+const CLAW_DIR = resolveClawDir();
 const CLAW_CACHE = path.join(PROJECT_ROOT, ".pkg-cache", "claw");
 
 const ALL_TARGETS = [
