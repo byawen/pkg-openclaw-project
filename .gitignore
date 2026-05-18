@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+
+# Build outputs
+dist-pkg/
+
+# Package cache (generated at build time)
+.pkg-cache/
+
+# Build staging
+pkg-build/_cache_staging/
+
+# Runtime state
+.openclaw-state/
+
+# Logs
+*.log
+
+# Backups
+*.bak
+*.last-good
+
+# Local config overrides (keep openclaw.json as template)
+openclaw.json
+openclaw-home
