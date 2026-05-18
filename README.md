@@ -12,6 +12,9 @@ npm start
 ### 方式 2: 直接运行 Node.js
 ```bash
 node main.js
+
+# 指定配置文件和缓存目录
+node main.js --config openclaw.json --state-dir .openclaw-state --pkg-cache-dir /path/to/cache
 ```
 
 ### 方式 3: 使用二进制文件
@@ -28,9 +31,15 @@ node main.js
 
 ## 📦 构建二进制文件
 
+### 安装 OpenClaw 依赖
+OpenClaw 依赖隔离在 `claw/` 目录下，构建前需先安装：
+```bash
+pnpm run install:claw
+```
+
 ### 构建所有平台
 ```bash
-npm run build:pkg
+pnpm run build:pkg
 ```
 
 ### 构建单个平台
@@ -62,6 +71,24 @@ npm run build:pkg:win-x64
 ./dist-pkg/openclaw-macos-arm64 --log-level debug gateway run
 ```
 
+### 指定缓存目录
+```bash
+# 二进制直接启动
+./dist-pkg/openclaw-macos-arm64 gateway run --pkg-cache-dir=/path/to/cache
+
+# 通过 main.js 启动
+node main.js --pkg-cache-dir=/path/to/cache
+```
+
+## 🔄 缓存机制
+
+二进制首次运行时会将 OpenClaw 运行时解压到缓存目录（默认 `dist-pkg/openclaw-pkg-cache`）。
+
+- 通过 `version.json` 中的 hash 值判断缓存是否有效
+- 当二进制内容更新、hash 变化时，自动删除旧缓存并重新解压
+- 相同源代码多次打包 hash 一致，缓存可复用
+- 多卷 tar 并行解压，Windows/macOS 均支持
+
 ## 📊 Gateway 信息
 
 启动成功后，Gateway 会输出：
@@ -92,6 +119,9 @@ npm run build:pkg:win-x64
 | `openclaw.json` | Gateway 配置文件 |
 | `.openclaw-state/` | Gateway 状态目录 |
 | `dist-pkg/` | 二进制文件输出目录 |
+| `claw/` | OpenClaw 独立依赖目录（含 `package.json` 和 `node_modules`） |
+| `.pkg-cache/claw/` | 分卷 tar 和 `version.json` 缓存 |
+| `version.json` | 记录 OpenClaw 源码 hash，用于运行时缓存校验 |
 
 ## ⚙️ 配置
 
