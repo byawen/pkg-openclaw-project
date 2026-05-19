@@ -145,36 +145,10 @@ if (isPkgBinary && snapshotVersion) {
     const startTime = Date.now();
 
     try {
-      const isWin = process.platform === "win32";
-
-      // Windows: npm tar 直读 snapshot，串行解压避免并发锁竞争
-      // macOS/Linux: system tar（外部进程无法读 snapshot，需 tmp 复制）
-      if (isWin) {
-        console.error("[pkg] Using npm-tar for", cacheTarParts.length, "part(s)");
-        const tar = require("tar");
-        // 并发解压：dist part 和 deps part 路径不重叠，无锁竞争
-        await Promise.all(cacheTarParts.map(src => tar.x({ cwd: cacheDir, file: src, preserveOwner: false, onwarn: () => {} })));
-      } else {
-        console.error("[pkg] Using system-tar for", cacheTarParts.length, "part(s)");
-        const tmpTars = [];
-        for (const src of cacheTarParts) {
-          const tmp = path.join(os.tmpdir(), `openclaw-${path.basename(src)}`);
-          fs.copyFileSync(src, tmp);
-          tmpTars.push(tmp);
-        }
-        for (const t of tmpTars) {
-          await new Promise((resolve, reject) => {
-            // tar 是未压缩的，用 -xf（不是 -xzf）
-            const child = spawn("tar", ["-xf", t, "-C", cacheDir], { stdio: "inherit" });
-            child.on("exit", (code) => {
-              if (code === 0) resolve();
-              else reject(new Error(`tar exited with code ${code}`));
-            });
-            child.on("error", reject);
-          });
-        }
-        for (const t of tmpTars) try { fs.unlinkSync(t); } catch (e) {}
-      }
+      console.error("[pkg] Using npm-tar for", cacheTarParts.length, "part(s)");
+      const tar = require("tar");
+      // 并发解压：各 part 路径不重叠，无锁竞争
+      await Promise.all(cacheTarParts.map(src => tar.x({ cwd: cacheDir, file: src, preserveOwner: false, onwarn: () => {} })));
 
       if (snapshotVersion) {
         fs.writeFileSync(path.join(cacheDir, "version.json"), JSON.stringify(snapshotVersion, null, 2));
