@@ -6,11 +6,11 @@
   "main": "main.js",
   "scripts": {
     "start": "node main.js",
-    "install:claw": "cd claw && pnpm install",
-    "build:pkg": "node pkg-build/scripts/build-pkg-final.mjs",
-    "build:pkg:macos-x64": "node pkg-build/scripts/build-pkg-final.mjs --target macos-x64",
-    "build:pkg:macos-arm64": "node pkg-build/scripts/build-pkg-final.mjs --target macos-arm64",
-    "build:pkg:win-x64": "node pkg-build/scripts/build-pkg-final.mjs --target win-x64"
+    "install:claw": "cd my-claw && npm install",
+    "build:pkg": "node pkg-build/scripts/build-pkg-final.mjs --pkg-cache .pkg-cache --dist-dir dist-pkg --claw-dir my-claw",
+    "build:pkg:macos-x64": "node pkg-build/scripts/build-pkg-final.mjs --target macos-x64 --pkg-cache .pkg-cache --dist-dir dist-pkg --claw-dir my-claw",
+    "build:pkg:macos-arm64": "node pkg-build/scripts/build-pkg-final.mjs --target macos-arm64 --pkg-cache .pkg-cache --dist-dir dist-pkg --claw-dir my-claw",
+    "build:pkg:win-x64": "node pkg-build/scripts/build-pkg-final.mjs --target win-x64 --pkg-cache .pkg-cache --dist-dir dist-pkg --claw-dir my-claw"
   },
   "keywords": [],
   "author": "",
@@ -20,16 +20,15 @@
     "main.js",
     "package.json"
   ],
-  "devDependencies": {
-    "@yao-pkg/pkg": "^6.19.0"
-  },
+  "devDependencies": {},
   "pkg": {
     "scripts": [
       "pkg-build/config/main-pkg-extract.cjs"
     ],
     "assets": [
       "package.json",
-      ".pkg-cache/claw/claw-part-*.tar"
+      ".pkg-cache/claw/claw-part-*.tar",
+      ".pkg-cache/claw/version.json"
     ],
     "publicPackages": [
       "tar"

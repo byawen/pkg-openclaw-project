@@ -12,9 +12,11 @@ dist-pkg/
 
 # Package cache (generated at build time)
 .pkg-cache/
+.pkg-cache-bak/
 
 # Build staging
 pkg-build/_cache_staging/
+package.json.build-backup
 
 # Runtime state
 .openclaw-state/

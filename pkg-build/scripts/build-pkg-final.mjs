@@ -7,8 +7,22 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.join(__dirname, "../..");
-const OUTPUT_DIR = path.join(PROJECT_ROOT, "dist-pkg");
-const LOCAL_CACHE = path.join(PROJECT_ROOT, ".pkg-cache");
+function resolveDistDir() {
+  const idx = process.argv.indexOf("--dist-dir");
+  if (idx !== -1 && process.argv[idx + 1]) return path.resolve(PROJECT_ROOT, process.argv[idx + 1]);
+  const env = process.env.DIST_DIR;
+  if (env) return path.resolve(PROJECT_ROOT, env);
+  return path.join(PROJECT_ROOT, "dist-pkg");
+}
+const OUTPUT_DIR = resolveDistDir();
+function resolvePkgCache() {
+  const idx = process.argv.indexOf("--pkg-cache");
+  if (idx !== -1 && process.argv[idx + 1]) return path.resolve(PROJECT_ROOT, process.argv[idx + 1]);
+  const env = process.env.PKG_CACHE;
+  if (env) return path.resolve(PROJECT_ROOT, env);
+  return path.join(PROJECT_ROOT, ".pkg-cache");
+}
+const LOCAL_CACHE = resolvePkgCache();
 function resolveClawDir() {
   const idx = process.argv.indexOf("--claw-dir");
   if (idx !== -1 && process.argv[idx + 1]) return path.resolve(PROJECT_ROOT, process.argv[idx + 1]);
@@ -17,7 +31,7 @@ function resolveClawDir() {
   return path.join(PROJECT_ROOT, "claw");
 }
 const CLAW_DIR = resolveClawDir();
-const CLAW_CACHE = path.join(PROJECT_ROOT, ".pkg-cache", "claw");
+const CLAW_CACHE = path.join(LOCAL_CACHE, "claw");
 
 const ALL_TARGETS = [
   { name: "macos-x64", pkg: "node22-macos-x64", output: "openclaw-macos-x64" },
@@ -61,14 +75,14 @@ const OPENCLAW_DEST = path.join(STAGING, "node_modules", "openclaw");
 if (existsSync(STAGING)) rmSync(STAGING, { recursive: true, force: true });
 mkdirSync(OPENCLAW_DEST, { recursive: true });
 
-console.log("Staging cache directory from claw/node_modules/openclaw...");
+console.log(`Staging cache directory from ${CLAW_DIR}/node_modules/openclaw...`);
 
 // 1. 从 claw/node_modules/openclaw 复制完整内容
 const srcDir = path.join(CLAW_DIR, "node_modules", "openclaw");
 if (existsSync(srcDir)) {
   cpSync(srcDir, OPENCLAW_DEST, { recursive: true, force: true, dereference: true });
 } else {
-  console.error("ERROR: claw/node_modules/openclaw not found. Run 'cd claw && pnpm install' first.");
+  console.error(`ERROR: ${CLAW_DIR}/node_modules/openclaw not found. Run 'cd claw && pnpm install' first.`);
   process.exit(1);
 }
 

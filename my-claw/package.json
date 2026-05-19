@@ -1,0 +1,17 @@
+{
+  "name": "openclaw",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.32.1",
+  "files": [
+    "package.json"
+  ],
+  "dependencies": {
+    "openclaw": "^2026.5.7"
+  }
+}
