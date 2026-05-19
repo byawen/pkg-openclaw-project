@@ -72,7 +72,13 @@ if (existsSync(CLAW_CACHE)) {
 const STAGING = path.join(PROJECT_ROOT, "pkg-build", "_cache_staging");
 const OPENCLAW_DEST = path.join(STAGING, "node_modules", "openclaw");
 
-if (existsSync(STAGING)) rmSync(STAGING, { recursive: true, force: true });
+if (existsSync(STAGING)) {
+  try {
+    rmSync(STAGING, { recursive: true, force: true, maxRetries: 5 });
+  } catch (err) {
+    execSync(`rm -rf "${STAGING}"`, { stdio: "ignore" });
+  }
+}
 mkdirSync(OPENCLAW_DEST, { recursive: true });
 
 console.log(`Staging cache directory from ${CLAW_DIR}/node_modules/openclaw...`);
@@ -695,7 +701,12 @@ for (const g of groups) {
 })();
 // ==========================
 
-rmSync(STAGING, { recursive: true, force: true });
+try {
+  rmSync(STAGING, { recursive: true, force: true, maxRetries: 5 });
+} catch (err) {
+  console.warn("rmSync failed, falling back to shell rm -rf:", err.message);
+  execSync(`rm -rf "${STAGING}"`, { stdio: "ignore" });
+}
 console.log("Cache parts created.\n");
 
 const rootPkgJsonPath = path.join(PROJECT_ROOT, "package.json");

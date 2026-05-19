@@ -12,6 +12,6 @@
     "package.json"
   ],
   "dependencies": {
-    "openclaw": "^2026.5.7"
+    "openclaw": "2026.5.7"
   }
 }

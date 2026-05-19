@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { spawn, spawnSync } = require("child_process");
+const { spawn } = require("child_process");
 const os = require("os");
 
 const isPkgBinary = typeof process.pkg !== "undefined";
@@ -195,60 +195,6 @@ if (isPkgBinary && snapshotVersion) {
   process.env.OPENCLAW_STATE_DIR = stateDir;
 
   const openclawPath = path.join(openclawDest, "openclaw.mjs");
-  const args = [openclawPath, ...userArgs];
-
-  // 找到系统 Node.js
-  function findSystemNode() {
-    if (process.platform === "win32") {
-      const pf = process.env.ProgramFiles || "C:\\Program Files";
-      const pf86 = process.env["ProgramFiles(x86)"] || "C:\\Program Files (x86)";
-      const localAppData = process.env.LOCALAPPDATA || "";
-      const candidates = [
-        path.join(pf, "nodejs", "node.exe"),
-        path.join(pf86, "nodejs", "node.exe"),
-      ];
-      if (localAppData) {
-        candidates.push(path.join(localAppData, "Microsoft", "WinGet", "Packages", "OpenJS.NodeJS_Microsoft.Winget.Source_8wekyb3d8bbwe", "node.exe"));
-      }
-      for (const c of candidates) {
-        if (fs.existsSync(c)) return c;
-      }
-      // 通过 where 查找
-      try {
-        const result = spawnSync("where", ["node"], { encoding: "utf8" });
-        if (result.status === 0) {
-          const lines = result.stdout.trim().split(/\r?\n/);
-          for (const line of lines) {
-            const p = line.trim();
-            if (p && fs.existsSync(p)) return p;
-          }
-        }
-      } catch (e) {}
-      return "node";
-    }
-    const candidates = [
-      "/usr/local/bin/node",
-      "/opt/homebrew/bin/node",
-      "/usr/bin/node",
-      "/bin/node",
-    ];
-    for (const c of candidates) {
-      if (fs.existsSync(c)) return c;
-    }
-    try {
-      const result = spawnSync("which", ["node"], { encoding: "utf8" });
-      if (result.status === 0) {
-        const p = result.stdout.trim();
-        if (p && fs.existsSync(p)) return p;
-      }
-    } catch (e) {}
-    return "node";
-  }
-
-  const nodePath = findSystemNode();
-  console.error("[pkg] Using node:", nodePath);
-  console.error("[pkg] Spawning with args:", args);
-  console.error("[pkg] CWD:", process.cwd());
 
   // 验证入口文件存在
   if (!fs.existsSync(openclawPath)) {
@@ -256,8 +202,26 @@ if (isPkgBinary && snapshotVersion) {
     process.exit(1);
   }
 
+  // 生成文件系统上的 CJS launcher，用 pkg binary 自身 spawn 运行
+  // wrapper 中的 import() 不受 pkg snapshot 限制
+  const launcherPath = path.join(cacheDir, "_launcher.cjs");
+  const launcherContent = `const path = require('path');
+const { pathToFileURL } = require('url');
+const openclawPath = path.join(${JSON.stringify(cacheDir)}, 'node_modules', 'openclaw', 'openclaw.mjs');
+process.argv = [process.execPath, openclawPath, ...process.argv.slice(2)];
+import(pathToFileURL(openclawPath)).catch(err => {
+  console.error('[pkg] Failed to run openclaw.mjs:', err);
+  process.exit(1);
+});
+`;
+  fs.writeFileSync(launcherPath, launcherContent);
+
+  console.error("[pkg] Using bundled node:", process.execPath);
+  console.error("[pkg] Spawning with args:", [launcherPath, ...userArgs]);
+  console.error("[pkg] CWD:", process.cwd());
+
   const spawnStart = Date.now();
-  const child = spawn(nodePath, args, {
+  const child = spawn(process.execPath, [launcherPath, ...userArgs], {
     stdio: ["inherit", "pipe", "pipe"],
     env: process.env,
   });
@@ -276,7 +240,7 @@ if (isPkgBinary && snapshotVersion) {
   });
 
   child.on("error", (err) => {
-    console.error("[pkg] Failed to spawn node:", err);
+    console.error("[pkg] Failed to spawn bundled node:", err);
     process.exit(1);
   });
 
